@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Winnipeg Transit Live</string>
+    <string name="maps_api_key">AIzaSyC7oW17gcLQ-wQ6rWhEj8Z5Z2xQVLY_tR0</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="banner_home_footer">ca-app-pub-9560082883265553/3195207825</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="search">Search</string>
+    <string name="refresh">Refresh</string>
+    <string name="favorite">favourite</string>
+    <string name="stop_street_place">stop# / street / place</string>
+    <string name="search_icon">Search Icon</string>
+</resources>

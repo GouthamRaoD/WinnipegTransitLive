@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.youngbro.mytransitlive.Search">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="50dp">
+        <include
+            layout="@layout/app_bar_main"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:layout_margin="5dp">
+        <EditText
+            android:layout_width="0dip"
+            android:layout_height="40dp"
+            android:inputType="textPersonName"
+            android:layout_weight="0.8"
+            android:hint="@string/stop_street_place"
+            android:textColorHint="@color/black"
+            android:background="@drawable/custom"
+            android:padding="8dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/black"
+            android:id="@+id/searchEdit"
+            />
+        <ImageView
+            android:layout_width="0dip"
+            android:layout_height="40dp"
+            android:src="@drawable/searchgo"
+            android:layout_weight="0.10"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="5dp"
+            android:onClick="goSearch"
+            android:contentDescription="@string/search_icon" />
+        </LinearLayout>
+    </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/adViewContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+</FrameLayout>
