@@ -2,22 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.youngbro.mytransitlive.Favourite">
+    tools:context="com.youngbro.mytransitlive.NearByMap">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <ListView
+
+        <com.google.android.gms.maps.MapView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/favour" />
-</LinearLayout>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/noData"
-        android:gravity="center"
-        android:textColor="#FFF"
-        android:textSize="18sp"/>
+            android:id="@+id/mapView"/>
+    </LinearLayout>
 
 </FrameLayout>
