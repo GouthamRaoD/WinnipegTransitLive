@@ -6,11 +6,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <meta-data android:name="com.google.android.gms.version"
         android:value="@integer/google_play_services_version" />
-
     <application
         android:name="com.youngbro.mytransitlive.AppController"
         android:allowBackup="true"
@@ -18,42 +16,34 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyC7oW17gcLQ-wQ6rWhEj8Z5Z2xQVLY_tR0" />
-        <activity android:name="com.youngbro.mytransitlive.MainActivity">
+            android:value="AIzaSyCzaOrRHHa0bFTKPmKngE7V5DET43E1264" />
+        <activity android:name="com.youngbro.mytransitlive.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.youngbro.mytransitlive.Stops">
+
+        <activity android:name=".Stops"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="com.youngbro.mytransitlive.Search">
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="com.youngbro.mytransitlive.MainActivity"/>
-
+        <activity android:name="com.youngbro.mytransitlive.SearchResult"
+            android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="com.youngbro.mytransitlive.SearchResult">
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="com.youngbro.mytransitlive.Search"/>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity android:name="com.google.android.gms.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:theme="@android:style/Theme.Translucent" />
     </application>
 
 </manifest>
