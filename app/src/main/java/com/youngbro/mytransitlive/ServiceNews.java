@@ -15,13 +15,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.facebook.ads.AdSize;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,14 +32,31 @@ import java.util.ArrayList;
 
 public class ServiceNews extends Fragment {
 
+
     private RequestQueue request;
     private ArrayList<News> news;
     ListView list;
     View v;
-    Toolbar toolbar;
-    private com.facebook.ads.AdView adView;
+
+
     public ServiceNews() {
         // Required empty public constructor
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
     }
 
     @Override
@@ -53,13 +70,11 @@ public class ServiceNews extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_service_news, container, false);
-        RelativeLayout adViewContainer = (RelativeLayout) v.findViewById(R.id.adViewContainer);
-        adView = new com.facebook.ads.AdView(getContext(), "", AdSize.BANNER_320_50);
-        adViewContainer.addView(adView);
-        adView.loadAd();
+
+
         news = new ArrayList<>();
         request = Volley.newRequestQueue(getContext());
-        JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET,"https://api.winnipegtransit.com/v2/service-advisories.json?api-key=<YOUR Api KEY>",null ,
+        JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET,"https://api.winnipegtransit.com/v2/service-advisories.json?api-key=fbHIUejdXU0sRq6w9Nqy",null ,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -70,9 +85,14 @@ public class ServiceNews extends Fragment {
                                 {
                                     news.add(new News(array.getJSONObject(i).getString("title"),array.getJSONObject(i).getString("body")));
                                 }
-                                Display dis = new Display(getActivity(), new String[news.size()], news);
-                                list = (ListView) v.findViewById(R.id.news_view);
-                                list.setAdapter(dis);
+                                do {
+                                    if(getActivity() != null) {
+                                        Display dis = new Display(getActivity(), new String[news.size()], news);
+                                        list = (ListView) v.findViewById(R.id.news_view);
+                                        list.setAdapter(dis);
+                                    }
+                                }while(getActivity() == null);
+
                             } catch (JSONException e) {
 
                                 e.printStackTrace();

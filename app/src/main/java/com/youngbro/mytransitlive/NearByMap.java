@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -46,6 +47,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class NearByMap extends Fragment implements OnMapReadyCallback {
@@ -77,7 +81,7 @@ public class NearByMap extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.fragment_near_by_map, container, false);
+        view = inflater.inflate(R.layout.fragment_nearby_map, container, false);
 
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
@@ -98,7 +102,7 @@ public class NearByMap extends Fragment implements OnMapReadyCallback {
             public void onProviderDisabled(String provider) {
             }
         };
-        if (Build.VERSION.SDK_INT > 25) {
+        if (Build.VERSION.SDK_INT > 28) {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         } else {
             if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -126,61 +130,30 @@ public class NearByMap extends Fragment implements OnMapReadyCallback {
     }
 
     public void refreshLayout() {
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if(location !=null) {
-                lat = String.valueOf(location.getLatitude());
-                lon = String.valueOf(location.getLongitude());
 
-            }//txt = (TextView) findViewById(R.id.noStops);
-            request = Volley.newRequestQueue(getContext());
-            JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET, "https://api.winnipegtransit.com/v2/stops.json?distance=1000&lat=" + lat + "&lon=" + lon + "&api-key=<YOUR Api KEY>", null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            if (response != null) {
+        name = new String[5188];
+        stop = new String[5188];
+        latitude = new String[5188];
+        longitude = new String[5188];
+        try {
+            Resources res = getResources();
+            InputStream inputStream = res.openRawResource(R.raw.stops);
 
-                                try {
-                                    JSONArray array = (JSONArray) response.get("stops");
-                                    if (array.length() != 0) {
-
-                                        name = new String[array.length()];
-                                        stop = new String[array.length()];
-                                        latitude = new String[array.length()];
-                                        longitude = new String[array.length()];
-                                        //Toast.makeText(getContext(), array.length() + " Arrau " + name.length + " " + stop.length + " " + latitude.length + " " + longitude.length, Toast.LENGTH_LONG).show();
-                                        for (int i = 0; i < array.length(); i++) {
-                                            JSONObject jb1 = (JSONObject) array.get(i);
-                                            //JSONArray array1 = (JSONArray) jb1.get("distance");
-                                            name[i] = array.getJSONObject(i).getString("name");
-                                            stop[i] = array.getJSONObject(i).getString("key");
-                                            latitude[i] = jb1.getJSONObject("centre").getJSONObject("geographic").getString("latitude");
-                                            longitude[i] = jb1.getJSONObject("centre").getJSONObject("geographic").getString("longitude");
-                                        }
-
-                                    } else {
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-
-                @Override
-                public void onErrorResponse(VolleyError error) {
-
-                }
-            });
-            request.add(strReq);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            int i =0;
+            while (line != null) {
+                String[] tokens= line.split(",");
+                name[i] = tokens[2];
+                stop[i] = tokens[3];
+                latitude[i] = tokens[0];
+                longitude[i] = tokens[1];
+                line = reader.readLine();
+                i++;
+            }
+        } catch (Exception e) {
         }
     }
-
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -241,58 +214,59 @@ public class NearByMap extends Fragment implements OnMapReadyCallback {
         // manager.
         mGoogleMap.setOnCameraIdleListener(mClusterManager);
         mGoogleMap.setOnMarkerClickListener(mClusterManager);
-        //mGoogleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.night_theme));
-        CameraPosition cameraPosition1 = new CameraPosition.Builder().target(new LatLng(49.8951, -97.1384)).zoom(12).build();
+        mGoogleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.night_theme));
+        CameraPosition cameraPosition1 = new CameraPosition.Builder().target(new LatLng(49.8951, -97.1384)).zoom(10).build();
         mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition1));
         //Toast.makeText(getContext(),latitude.length+"",Toast.LENGTH_LONG).show();
-        LocationManager lm = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        final LocationManager lm = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+
+        if(stop != null) {
+            for (int i = 0; i < stop.length; i++) {
+                LatiLongi offsetItem = new LatiLongi(new LatLng(Float.parseFloat(latitude[i]), Float.parseFloat(longitude[i])), name[i], stop[i]);
+                mClusterManager.addItem(offsetItem);
+            }
+            mClusterManager.setAnimation(false);
+            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mGoogleMap.setMyLocationEnabled(true);
+            mGoogleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                @Override
+                public boolean onMyLocationButtonClick() {
+                    if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+                    {
+                        refreshLayout();
+                        mMapView.onResume();
+
+                        // For zooming automatically to the location of the marker
+                        CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon))).zoom(15).build();
+                        //mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        mMapView.onResume();
+                    }
+                    return true;
+                }
+            });
+            mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(Marker marker) {
+                    Intent intent = new Intent(getContext(), Stops.class);
+                    intent.putExtra("stop", marker.getSnippet());
+                    intent.putExtra("name", marker.getTitle());
+                    startActivity(intent);
+                }
+            });
+        }
         if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
         {
             refreshLayout();
             mMapView.onResume();
-            if(stop != null) {
-                for (int i = 0; i < stop.length; i++) {
-                    LatiLongi offsetItem = new LatiLongi(new LatLng(Float.parseFloat(latitude[i]), Float.parseFloat(longitude[i])), name[i], stop[i]);
-                    mClusterManager.addItem(offsetItem);
-                }
-                mClusterManager.setAnimation(false);
-                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                mGoogleMap.setMyLocationEnabled(true);
-                // For zooming automatically to the location of the marker
-                CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon))).zoom(15).build();
-                //mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                mGoogleMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                    @Override
-                    public void onInfoWindowClick(Marker marker) {
-                        Intent intent = new Intent(getContext(), Stops.class);
-                        intent.putExtra("stop", marker.getSnippet());
-                        intent.putExtra("name", marker.getTitle());
-                        startActivity(intent);
-                    }
-                });
-            }
+
+            // For zooming automatically to the location of the marker
+//            CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon))).zoom(15).build();
+            //mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            //mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             mMapView.onResume();
         }
-        else {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setMessage("To use this Feature you need to enable your location service.\nWould you like to enable the location service?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, final int id) {
-                            startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                        }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, final int id) {
-                            dialog.cancel();
-                        }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-        }
-        }
     }
-
+}

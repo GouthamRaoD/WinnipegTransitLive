@@ -10,6 +10,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -25,13 +28,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.facebook.ads.AdSize;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,7 +53,6 @@ public class NearByStops extends Fragment {
     private LocationManager locationManager;
     private LocationListener locationListener;
     private RequestQueue request;
-    private com.facebook.ads.AdView adView;
     SwipeRefreshLayout mySwipeRefreshLayout;
     TextView behind;
 
@@ -59,17 +61,22 @@ public class NearByStops extends Fragment {
     }
 
 
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+    View v;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_near_by_stops, container, false);
+        v = inflater.inflate(R.layout.fragment_near_by_stops, container, false);
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         mySwipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swiperefresh);
         behind = (TextView) v.findViewById(R.id.behind);
@@ -86,7 +93,7 @@ public class NearByStops extends Fragment {
             @Override
             public void onProviderDisabled(String provider) {}
         };
-        if (Build.VERSION.SDK_INT > 25) {
+        if (Build.VERSION.SDK_INT > 28) {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         }
         else
@@ -96,6 +103,11 @@ public class NearByStops extends Fragment {
             } else {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
                 Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if(location == null)
+                {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
                 if (location != null) {
                     updateLocationInfo(location);
                 }
@@ -104,10 +116,6 @@ public class NearByStops extends Fragment {
                 }
             }
         }
-        RelativeLayout adViewContainer = (RelativeLayout) v.findViewById(R.id.adViewContainer);
-        adView = new com.facebook.ads.AdView(getContext(), "", AdSize.BANNER_320_50);
-        adViewContainer.addView(adView);
-        adView.loadAd();
         list = (ListView) v.findViewById(R.id.aroundYou);
         refreshLayout();
         mySwipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swiperefresh);
@@ -123,6 +131,7 @@ public class NearByStops extends Fragment {
         return v;
     }
     public void refreshLayout(){
+
 
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -140,7 +149,7 @@ public class NearByStops extends Fragment {
         if(lat != null && lon != null) {
             behind.setText("");
             request = Volley.newRequestQueue(getContext());
-            JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET, "https://api.winnipegtransit.com/v2/stops.json?distance=1000&lat=" + lat + "&lon=" + lon + "&api-key=<YOUR Api KEY>", null,
+            JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET, "https://api.winnipegtransit.com/v2/stops.json?distance=1000&lat=" + lat + "&lon=" + lon + "&api-key=fbHIUejdXU0sRq6w9Nqy", null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
@@ -158,18 +167,22 @@ public class NearByStops extends Fragment {
                                             stop[i] = array.getJSONObject(i).getString("key");
                                             distance[i] = jb1.getJSONObject("distances").getString("direct");
                                         }
-                                        dis = new Display(getActivity(), name, stop, distance);
-                                        list.setAdapter(dis);
-                                        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                                            @Override
-                                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                                // Getting the Container Layout of the ListView
-                                                Intent intent = new Intent(getContext(), Stops.class);
-                                                intent.putExtra("stop", stop[position]);
-                                                intent.putExtra("name", name[position]);
-                                                startActivity(intent);
+                                        do {
+                                            if (getActivity() != null) {
+                                                dis = new Display(getActivity(), name, stop, distance);
+                                                list.setAdapter(dis);
+                                                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                                    @Override
+                                                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                                        // Getting the Container Layout of the ListView
+                                                        Intent intent = new Intent(getContext(), Stops.class);
+                                                        intent.putExtra("stop", stop[position]);
+                                                        intent.putExtra("name", name[position]);
+                                                        startActivity(intent);
+                                                    }
+                                                });
                                             }
-                                        });
+                                        }while(getActivity() == null);
 
                                     } else {
                                         behind.setText("No Stops Nearby");

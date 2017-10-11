@@ -15,7 +15,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.facebook.ads.AdSize;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,42 +23,37 @@ import java.util.Collections;
 public class Favourite extends Fragment {
     DataBase db;
     ArrayList<DbData> data;
-    Toolbar toolbar;
 
-    private com.facebook.ads.AdView adView;
 
     public Favourite() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onResume() {
+        refreshFavourite(getView());
+        super.onResume();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View v =inflater.inflate(R.layout.fragment_favourite, container, false);
-        RelativeLayout adViewContainer = (RelativeLayout) v.findViewById(R.id.adViewContainer);
-        adView = new com.facebook.ads.AdView(getContext(), "1860375040906065_1860389664237936", AdSize.BANNER_320_50);
-        adViewContainer.addView(adView);
-        adView.loadAd();
+    public View refreshFavourite(View v){
+        View r =v;
         db = new DataBase(getContext(), null);
         data = db.getData();
         db.close();
         Collections.sort(data);
-        ListView list = (ListView) v.findViewById(R.id.favour);
+        TextView text = (TextView) r.findViewById(R.id.noData);
+        ListView list = (ListView) r.findViewById(R.id.favour);
         if(data.size() == 0)
         {
-            TextView text = (TextView) v.findViewById(R.id.noData);
+            list.setAdapter(null);
             text.setText("No Items in Favorites");
         }
         else {
+            text.setText(null);
             Query query = new Query(getActivity(), new String[data.size()], data);
             list.setAdapter(query);
             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -72,7 +66,16 @@ public class Favourite extends Fragment {
                 }
             });
         }
-        return v;
+        return r;
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View v =inflater.inflate(R.layout.fragment_favourite, container, false);
+
+
+        return refreshFavourite(v);
     }
 
     public class Query extends ArrayAdapter<String> {
@@ -85,7 +88,6 @@ public class Favourite extends Fragment {
             this.context = c;
             this.nameN = n;
             data = d;
-
         }
 
         @NonNull
@@ -95,7 +97,6 @@ public class Favourite extends Fragment {
             View around = layoutInflater.inflate(R.layout.sstops, null, true);
             TextView stop = (TextView) around.findViewById(R.id.stopNum);
             TextView sname = (TextView) around.findViewById(R.id.stopNa);
-
             stop.setText("#" + data.get(position).get_stopNo());
             sname.setText(data.get(position).get_stopName());
             return around;

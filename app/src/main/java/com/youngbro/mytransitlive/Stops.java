@@ -1,13 +1,17 @@
 package com.youngbro.mytransitlive;
 
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,9 +32,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.facebook.ads.AdSize;
-import com.facebook.ads.AdView;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +46,6 @@ import java.util.Date;
 public class Stops extends AppCompatActivity {
     static ArrayList<Bus> bus = new ArrayList<>();
     RequestQueue request;
-    private AdView adView;
     String route;
     String stop;
     TextView text;
@@ -56,14 +56,28 @@ public class Stops extends AppCompatActivity {
     String strl;
     SwipeRefreshLayout mySwipeRefreshLayout;
     Menu m;
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stops);
-        RelativeLayout adViewContainer = (RelativeLayout) findViewById(R.id.adViewContainer);
-        adView = new AdView(this, "", AdSize.BANNER_320_50);
-        adViewContainer.addView(adView);
-        adView.loadAd();
+
         toolbar = (Toolbar)  findViewById(R.id.toolbar);
         SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         db = new DataBase(this, null);
@@ -104,7 +118,7 @@ public class Stops extends AppCompatActivity {
     }
     public void refreshLayout(){
         request = Volley.newRequestQueue(this);
-        JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET,"https://api.winnipegtransit.com/v2/stops/"+ stopNum +"/schedule.json?end="+strl+"&api-key=<YOUR Api KEY>",null ,
+        JsonObjectRequest strReq = new JsonObjectRequest(Request.Method.GET,"https://api.winnipegtransit.com/v2/stops/"+ stopNum +"/schedule.json?end="+strl+"&api-key=fbHIUejdXU0sRq6w9Nqy",null ,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -156,6 +170,28 @@ public class Stops extends AppCompatActivity {
         m = menu;
         getMenuInflater().inflate(R.menu.main1, menu);
         updateIcon(menu);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
+        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        searchView.setQueryHint("StopNo/Street/Area");
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                Intent intent = new Intent(Stops.this, SearchResult.class);
+                query.replace(" ", "%20");
+                intent.putExtra("key",query);
+                startActivity(intent);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
         return true;
     }
     public void updateIcon(Menu menu)
@@ -174,11 +210,6 @@ public class Stops extends AppCompatActivity {
             refreshLayout();
             mySwipeRefreshLayout.setRefreshing(false);
             return true;
-        }
-        else if(id == R.id.action_search)
-        {
-            Intent intent = new Intent(this,Search.class);
-            startActivity(intent);
         }
         else if (id == R.id.action_favorite)
         {
@@ -203,6 +234,7 @@ public class Stops extends AppCompatActivity {
                 AlertDialog a = act.create();
                 a.show();
             }
+            db.close();
         }
         else if (id == android.R.id.home) {
             finish();

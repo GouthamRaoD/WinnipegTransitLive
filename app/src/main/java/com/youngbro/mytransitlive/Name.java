@@ -876,6 +876,9 @@ public class Name {
             case "94-1-P":
                 result ="Windermere";
                 break;
+            case "94-1-WP":
+                result ="Windermere";
+                break;
             case "94-0-K":
                 result ="Kenaston Common";
                 break;
